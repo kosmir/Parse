@@ -1,26 +1,26 @@
-# импорт библиотек
+# импорт необходимых библиотек
 import requests
 from bs4 import BeautifulSoup
 import csv
-import emoji
 import string
 
 def get_html(url):
     r = requests.get(url)
     return r.text
 
+# получаем количество страниц, которое необходимо пропарсить
 def get_total_pages(html):
     soup = BeautifulSoup(html, 'lxml')
     pages = soup.find('ul', class_='page-numbers nav-pagination links text-center').find_all('a', class_='page-number')[1].get('href')
     total_pages = pages.split('/page/')[1].split('/')[0]
     return int(total_pages)
 
-#явно прописать кодировку для функции write_csv
 def write_csv(data):
     try:
         with open('sadovod4.csv', 'a', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow((data['title'], data['url'], data['description']))
+    # в случае ошибки записи смотрим на словарь, который записывает в csv
     except:
         print(data)
 
@@ -30,7 +30,7 @@ def get_page_data(html):
     # для каждого объявления на странице получаю заголовок (title), адрес магазина в соцсетях (url), описание объявления (new_string)
     for ad in ads:
         try:
-            #чистка заголовка
+            #чистка заголовка от символов emodji
             old_title = ad.find('div', class_='entry-content').find('span', class_='post_title').text.strip()
             chars_avail = string.ascii_letters + string.digits + string.punctuation + string.whitespace \
                           + 'йцукенгшщзхъфывапролджэячсмитьбюёЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮЁ'
@@ -41,6 +41,7 @@ def get_page_data(html):
             url = ad.find('div', class_='entry-content').find('span', class_='post_title').find('a').get('href')
         except:
             url = ''
+            # чистка описания от символов emodji
         try:
             chars_avail = string.ascii_letters + string.digits + string.punctuation + string.whitespace \
                           + 'йцукенгшщзхъфывапролджэячсмитьбюёЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮЁ'
